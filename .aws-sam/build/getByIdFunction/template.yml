@@ -1,0 +1,181 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  load-testing-app
+
+Transform:
+- AWS::Serverless-2016-10-31
+
+Resources:
+  MyHTTPApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: Prod
+      Auth:
+        DefaultAuthorizer: MyLambdaTokenAuth
+        Authorizers:
+          MyLambdaTokenAuth:
+            AuthorizerPayloadFormatVersion: 2.0
+            FunctionArn:
+              Fn::GetAtt:
+                - MyAuthFunction
+                - Arn
+            Identity:
+              Headers:
+                - Authorization
+      DefaultRouteSettings:
+        DetailedMetricsEnabled: True
+        DataTraceEnabled: True
+        LoggingLevel: "INFO"
+        
+  MyRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Auth:
+        DefaultAuthorizer: MyLambdaTokenAuth
+        Authorizers:
+          MyLambdaTokenAuth:
+            FunctionArn:
+              Fn::GetAtt:
+                - MyAuthFunction
+                - Arn
+      MethodSettings:
+        - ResourcePath: /
+          HttpMethod: GET
+          MetricsEnabled: True
+          DataTraceEnabled: True
+          LoggingLevel: "INFO"
+        - ResourcePath: /{id}
+          HttpMethod: GET
+          MetricsEnabled: True
+          DataTraceEnabled: True
+        - ResourcePath: /
+          HttpMethod: POST
+          MetricsEnabled: True
+          DataTraceEnabled: True
+
+  MyAuthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/authfunc.handler
+      Runtime: nodejs14.x
+      MemorySize: 128
+      Timeout: 30
+      Tracing: Active
+      # ReservedConcurrentExecutions: 5
+  getAllItemsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/get-all-items.getAllItemsHandler
+      Runtime: nodejs14.x
+      MemorySize: 128
+      Timeout: 30
+      Tracing: Active
+      Description: A simple example includes a HTTP get method to get all items from a DynamoDB table.
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the SampleTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SampleTable
+      Environment:
+        Variables:
+          # Make table name accessible as environment variable from function code during execution
+          SAMPLE_TABLE: !Ref SampleTable
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyRestApi
+            Path: /
+            Method: GET
+        HTTPAPIEvent:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref MyHTTPApi
+            Path: /
+            Method: GET
+            # RouteSettings:
+            #   ThrottlingBurstLimit: 600
+  getByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/get-by-id.getByIdHandler
+      Runtime: nodejs14.x
+      MemorySize: 128
+      Timeout: 100
+      Tracing: Active
+      Description: A simple example includes a HTTP get method to get one item by id from a DynamoDB table.
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the SampleTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SampleTable
+      Environment:
+        Variables:
+          # Make table name accessible as environment variable from function code during execution
+          SAMPLE_TABLE: !Ref SampleTable
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyRestApi
+            Path: /{id}
+            Method: GET
+        HTTPAPIEvent:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref MyHTTPApi
+            Path: /{id}
+            Method: GET
+  putItemFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/put-item.putItemHandler
+      Runtime: nodejs14.x
+      MemorySize: 128
+      Timeout: 100
+      Tracing: Active
+      Description: A simple example includes a HTTP post method to add one item to a DynamoDB table.
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the SampleTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SampleTable
+      Environment:
+        Variables:
+          # Make table name accessible as environment variable from function code during execution
+          SAMPLE_TABLE: !Ref SampleTable
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyRestApi
+            Path: /
+            Method: POST
+        HTTPAPIEvent:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref MyHTTPApi
+            Path: /
+            Method: POST
+  
+  SampleTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      AttributeDefinitions: 
+        - AttributeName: "id"
+          AttributeType: "S"
+      KeySchema: 
+        - 
+          AttributeName: "id"
+          KeyType: "HASH"
+      BillingMode: "PAY_PER_REQUEST"
+
+
+
+Outputs:
+  WebRESTEndpoint:
+    Description: "API Gateway endpoint URL for Prod stage"
+    Value: !Sub "https://${MyRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  WebHTTPEndpoint:
+    Description: "API Gateway endpoint URL for Prod stage"
+    Value: !Sub "https://${MyHTTPApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
