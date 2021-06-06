@@ -19,10 +19,6 @@ Resources:
             Identity:
               Headers:
               - Authorization
-      DefaultRouteSettings:
-        DetailedMetricsEnabled: true
-        DataTraceEnabled: true
-        LoggingLevel: INFO
   MyRestApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -40,7 +36,6 @@ Resources:
         HttpMethod: GET
         MetricsEnabled: true
         DataTraceEnabled: true
-        LoggingLevel: INFO
       - ResourcePath: /{id}
         HttpMethod: GET
         MetricsEnabled: true
