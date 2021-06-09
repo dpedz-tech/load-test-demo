@@ -6,5 +6,5 @@ stack_name = "ltd2"
 s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-ep7k5iet5rr5"
 s3_prefix = "ltd2"
 region = "us-east-2"
-confirm_changeset = true
-capabilities = ["CAPABILITY_IAM","CAPABILITY_NAMED_IAM","CAPABILITY_AUTO_EXPAND"]
+confirm_changeset = false
+capabilities = ["CAPABILITY_IAM","CAPABILITY_NAMED_IAM"]

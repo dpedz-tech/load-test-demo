@@ -51,12 +51,16 @@ exports.handler = function(event, context, callback) {
     // keep in mind, the policy is cached for 5 minutes by default (TTL is configurable in the authorizer)
     // and will apply to subsequent calls to any method/resource in the RestApi
     // made with the same token
-
+   
     // the example policy below denies access to all resources in the RestApi
     var policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
     // policy.denyAllMethods();
+    if (String.toLowerCase(event.authorizationToken) == "allow"){
     policy.allowMethod(AuthPolicy.HttpVerb.GET, "/");
-	policy.allowMethod(AuthPolicy.HttpVerb.GET, "/pets/");
+	  policy.allowMethod(AuthPolicy.HttpVerb.GET, "/pets/");
+    }else{
+      policy.denyAllMethods();
+    }
     // finally, build the policy
     var authResponse = policy.build();
 

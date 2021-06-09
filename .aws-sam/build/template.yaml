@@ -49,7 +49,7 @@ Resources:
     Properties:
       Handler: src/handlers/authfunc.handler
       Runtime: nodejs14.x
-      MemorySize: 128
+      MemorySize: 512
       Timeout: 30
       Tracing: Active
       CodeUri: MyAuthFunction
@@ -58,7 +58,7 @@ Resources:
     Properties:
       Handler: src/handlers/get-all-items.getAllItemsHandler
       Runtime: nodejs14.x
-      MemorySize: 128
+      MemorySize: 512
       Timeout: 30
       Tracing: Active
       Description: A simple example includes a HTTP get method to get all items from
@@ -92,7 +92,7 @@ Resources:
     Properties:
       Handler: src/handlers/get-by-id.getByIdHandler
       Runtime: nodejs14.x
-      MemorySize: 128
+      MemorySize: 512
       Timeout: 100
       Tracing: Active
       Description: A simple example includes a HTTP get method to get one item by
@@ -126,7 +126,7 @@ Resources:
     Properties:
       Handler: src/handlers/put-item.putItemHandler
       Runtime: nodejs14.x
-      MemorySize: 128
+      MemorySize: 512
       Timeout: 100
       Tracing: Active
       Description: A simple example includes a HTTP post method to add one item to
